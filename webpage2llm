@@ -1,0 +1,29 @@
+#!/bin/bash
+# Wrapper script for webpage to LLM conversion
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_PYTHON="$SCRIPT_DIR/.venv/bin/python"
+
+# Check if virtual environment exists
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "Setting up virtual environment..." >&2
+    cd "$SCRIPT_DIR"
+    uv venv
+    uv pip install requests beautifulsoup4 markdownify trafilatura lxml selenium
+fi
+
+# Default to the regular script
+SCRIPT="webpage_to_llm.py"
+
+# Check if --js flag is present
+for arg in "$@"; do
+    if [ "$arg" = "--js" ]; then
+        SCRIPT="webpage_to_llm_js.py"
+        # Remove --js from arguments
+        set -- "${@/--js/}"
+        break
+    fi
+done
+
+# Run the appropriate script
+"$VENV_PYTHON" "$SCRIPT_DIR/$SCRIPT" "$@"
